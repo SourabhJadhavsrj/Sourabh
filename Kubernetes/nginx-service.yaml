@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: myapp-service
+  namespace: gcphelpdeskpoc
+  labels:
+    app: myapp
+spec:
+  type: ClusterIP
+  selector:
+    app: myapp
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+
+
+# Port Forward Command (Recommended – via Service)
+# kubectl port-forward svc/myapp-service 8080:80 -n gcphelpdeskpoc
+# svc/myapp-service → Forward traffic to the Service
+# 8080:80 → Local port 8080 → Service port 80
+# forwarding traffic from 8080 -> 80
+# http://localhost:8080 (open in browser)
+
+# Alternative: Port-forward a Pod (Not Recommended for Production)
+# kubectl get pods -n gcphelpdeskpoc
+# kubectl port-forward pod/<pod-name> 8080:80 -n gcphelpdeskpoc
+# http://localhost:8080 (open in browser)

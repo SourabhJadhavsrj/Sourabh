@@ -1,0 +1,50 @@
+# For already created gateway in Sabre
+
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: myapp-virtualservice
+  namespace: gcphelpdeskpoc
+spec:
+  hosts:
+  - myapp-gcphelpdeskpoc.apps.dev-01.us-central1.dev.sabre-gcp.com
+  gateways:
+  - istio-system/apps-internal-gateway
+  - mesh
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: myapp-service.gcphelpdeskpoc.svc.cluster.local
+        port:
+          number: 80
+
+
+# Access the nginx application through virtualservice host url (i.e. myapp-gcphelpdeskpoc.apps.dev-01.us-central1.dev.sabre-gcp.com)
+# kubect get vs -n <namespace-name>
+# Copy the host url of your virtual service and pase it in the browser
+
+
+# Not for Sabre
+
+# apiVersion: networking.istio.io/v1beta1
+# kind: VirtualService
+# metadata:
+#   name: myapp-virtualservice
+#   namespace: gcphelpdeskpoc
+# spec:
+#   hosts:
+#   - "myapp.local"
+#   gateways:
+#   - myapp-gateway     myapp-gateway can create through istio-gateway.yaml config file
+#   http:
+#   - match:
+#     - uri:
+#         prefix: /
+#     route:
+#     - destination:
+#         host: myapp-service
+#         port:
+#           number: 80
