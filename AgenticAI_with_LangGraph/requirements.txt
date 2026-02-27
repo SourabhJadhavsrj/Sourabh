@@ -1,0 +1,13 @@
+langchain
+langgraph
+langchain-core
+langchain-community
+ipykernel
+python-dotenv
+langchain-groq
+arxiv
+wikipedia
+langgraph-supervisor
+matplotlib
+langchain_experimental
+pandas
