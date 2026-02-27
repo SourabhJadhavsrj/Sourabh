@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced LangGraph tutorial · OpenAI examples</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 35px -8px rgba(0,0,0,0.1), 0 4px 8px -2px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        header {
+            background: linear-gradient(145deg, #0b1e33, #0f2a40);
+            color: white;
+            padding: 2.5rem 2rem;
+        }
+        header h1 {
+            font-weight: 600;
+            font-size: 2.2rem;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.25rem;
+        }
+        header p {
+            color: #aac8e0;
+            font-size: 1.2rem;
+            margin-top: 0.5rem;
+            max-width: 700px;
+        }
+        .content {
+            padding: 2rem;
+        }
+        h2 {
+            font-weight: 600;
+            font-size: 1.8rem;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+            letter-spacing: -0.01em;
+        }
+        h3 {
+            font-weight: 600;
+            font-size: 1.4rem;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+            color: #0f2a40;
+        }
+        p, li {
+            color: #1e293b;
+        }
+        a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .note {
+            background: #f0f9ff;
+            border-left: 6px solid #0284c7;
+            padding: 1.25rem 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+        }
+        .note strong {
+            color: #0369a1;
+        }
+        pre {
+            background: #0e1e2f;
+            color: #e2e8f0;
+            padding: 1.25rem;
+            border-radius: 16px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin: 1.2rem 0;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
+        }
+        code {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            background: #eef2f6;
+            padding: 0.2rem 0.4rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #0b1e33;
+        }
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+        .keyword { color: #ff79c6; }
+        .function { color: #50fa7b; }
+        .comment { color: #94a3b8; }
+        .table-of-contents {
+            background: #f1f5f9;
+            padding: 1.5rem 2rem;
+            border-radius: 20px;
+            margin: 2rem 0;
+        }
+        .table-of-contents ul {
+            columns: 2;
+            list-style: none;
+            margin-top: 0.5rem;
+        }
+        .table-of-contents li {
+            margin-bottom: 0.5rem;
+        }
+        .table-of-contents a {
+            font-weight: 500;
+        }
+        hr {
+            border: none;
+            border-top: 2px dashed #cbd5e1;
+            margin: 2.5rem 0;
+        }
+        .example-box {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 8px 20px -12px rgba(0,0,0,0.15);
+        }
+        .badge {
+            background: #0f2a40;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.3rem 0.9rem;
+            border-radius: 30px;
+            display: inline-block;
+            margin-bottom: 0.75rem;
+            letter-spacing: 0.3px;
+        }
+        footer {
+            background: #eef2f6;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            color: #475569;
+            font-size: 0.95rem;
+            border-top: 1px solid #cbd5e1;
+        }
+    </style>
+    <!-- simple syntax highlight (just a hint) -->
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>🧠 LangGraph · advanced tutorial</h1>
+        <p>Master stateful agents with cycles, human-in-the-loop, and checkpoints — using OpenAI and small, runnable examples.</p>
+    </header>
+    <div class="content">
+        <div class="table-of-contents">
+            <strong style="font-size: 1.2rem;">📌 advanced concepts covered</strong>
+            <ul>
+                <li><a href="#intro">1. why LangGraph?</a></li>
+                <li><a href="#setup">2. setup & basic graph</a></li>
+                <li><a href="#conditional">3. conditional edges (router)</a></li>
+                <li><a href="#cycles">4. cycles & self‑reflection</a></li>
+                <li><a href="#human">5. human‑in‑the‑loop (interrupt)</a></li>
+                <li><a href="#checkpoint">6. checkpoints & persistence</a></li>
+                <li><a href="#parallel">7. parallel execution (fan‑out, fan‑in)</a></li>
+                <li><a href="#subgraph">8. subgraphs (hierarchical)</a></li>
+                <li><a href="#streaming">9. streaming & async</a></li>
+            </ul>
+        </div>
+
+        <section id="intro">
+            <h2>🚀 1. beyond DAGs – why LangGraph?</h2>
+            <p>LangGraph turns your LLM chains into <strong>cyclic, stateful graphs</strong>. Unlike pure DAGs (like LangChain Expression Language), you can implement loops, back‑tracking, and dynamic control flow — essential for agents, reflection, and human approval. Every node reads and writes to a shared state object. You bring the OpenAI API, LangGraph provides the orchestration.</p>
+            <div class="note"><strong>📘 prerequisite</strong> – you have an OpenAI key and <code>langgraph</code> installed: <code>pip install -U langgraph langchain-openai</code></div>
+        </section>
+
+        <section id="setup">
+            <h2>⚙️ 2. basic state graph (with OpenAI)</h2>
+            <p>Every LangGraph app starts with a <code>StateGraph</code>. The state is a <code>TypedDict</code> (or <code>BaseModel</code>) that flows through nodes. Let’s build a tiny agent that calls OpenAI and optionally uses a tool.</p>
+            <div class="example-box">
+                <span class="badge">example 1 – minimal graph</span>
+                <pre><code><span style="color:#ff79c6">from</span> <span style="color:#f8f8f2">typing</span> <span style="color:#ff79c6">import</span> <span style="color:#f8f8f2">TypedDict, Annotated, List</span>
+<span style="color:#ff79c6">import</span> <span style="color:#f8f8f2">operator</span>
+<span style="color:#ff79c6">from</span> <span style="color:#f8f8f2">langgraph.graph</span> <span style="color:#ff79c6">import</span> <span style="color:#f8f8f2">StateGraph, END</span>
+<span style="color:#ff79c6">from</span> <span style="color:#f8f8f2">langchain_openai</span> <span style="color:#ff79c6">import</span> <span style="color:#f8f8f2">ChatOpenAI</span>
+
+<span style="color:#ff79c6">class</span> <span style="color:#50fa7b">AgentState</span>(TypedDict):
+    messages: Annotated[List, operator.add]   <span style="color:#6272a4"># append‑only</span>
+    next_step: str
+
+<span style="color:#ff79c6">def</span> <span style="color:#50fa7b">call_llm</span>(state: AgentState):
+    llm = ChatOpenAI(model=<span style="color:#f1fa8c">"gpt-4o-mini"</span>)
+    response = llm.invoke(state[<span style="color:#f1fa8c">"messages"</span>])
+    state[<span style="color:#f1fa8c">"messages"</span>].append(response)
+    <span style="color:#6272a4"># trivial routing: always go to 'tool' (just for demo)</span>
+    <span style="color:#ff79c6">return</span> {<span style="color:#f1fa8c">"next_step"</span>: <span style="color:#f1fa8c">"tool"</span>}
+
+<span style="color:#ff79c6">def</span> <span style="color:#50fa7b">mock_tool</span>(state: AgentState):
+    state[<span style="color:#f1fa8c">"messages"</span>].append({<span style="color:#f1fa8c">"role"</span>:<span style="color:#f1fa8c">"tool"</span>, <span style="color:#f1fa8c">"content"</span>:<span style="color:#f1fa8c">"42"</span>})
+    <span style="color:#ff79c6">return</span> {<span style="color:#f1fa8c">"next_step"</span>: <span style="color:#f1fa8c">"__end__"</span>}
+
+builder = StateGraph(AgentState)
+builder.add_node(<span style="color:#f1fa8c">"agent"</span>, call_llm)
+builder.add_node(<span style="color:#f1fa8c">"tool"</span>, mock_tool)
+builder.set_entry_point(<span style="color:#f1fa8c">"agent"</span>)
+builder.add_edge(<span style="color:#f1fa8c">"agent"</span>, <span style="color:#f1fa8c">"tool"</span>)
+builder.add_edge(<span style="color:#f1fa8c">"tool"</span>, END)
+graph = builder.compile()</code></pre>
+            <p>Run with <code>graph.invoke({"messages": [{"role":"user","content":"what's 6*7?"}]})</code> – it calls OpenAI, then mock tool, then ends.</p>
+            </div>
+        </section>
+
+        <section id="conditional">
+            <h2>🔀 3. conditional edges – smart routing</h2>
+            <p>Most agents need to decide between multiple paths (e.g., call tool or respond). Conditional edges examine the state and return the next node name.</p>
+            <div class="example-box">
+                <span class="badge">example 2 – router with OpenAI</span>
+                <pre><code><span style="color:#ff79c6">def</span> <span style="color:#50fa7b">should_continue</span>(state: AgentState) -> str:
+    last_msg = state[<span style="color:#f1fa8c">"messages"</span>][-<span style="color:#f1fa8c">1</span>]
+    <span style="color:#ff79c6">if</span> <span style="color:#f1fa8c">"tool_calls"</span> <span style="color:#ff79c6">in</span> last_msg.additional_kwargs:
+        <span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">"tool_node"</span>
+    <span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">"respond"</span>
+
+builder.add_conditional_edges(<span style="color:#f1fa8c">"agent"</span>, should_continue, {
+    <span style="color:#f1fa8c">"tool_node"</span>: <span style="color:#f1fa8c">"tool"</span>,
+    <span style="color:#f1fa8c">"respond"</span>: <span style="color:#f1fa8c">"final"</span>
+})</code></pre>
+            <p>Here the agent node can return tool calls; the router sends to tool or final output.</p>
+            </div>
+        </section>
+
+        <section id="cycles">
+            <h2>🔄 4. cycles & self‑reflection (agent loops)</h2>
+            <p>LangGraph natively supports cycles. Create a reflection agent that generates an answer, critiques itself, and repeats until satisfied.</p>
+            <div class="example-box">
+                <span class="badge">example 3 – reflection loop (advanced)</span>
+                <pre><code><span style="color:#ff79c6">def</span> <span style="color:#50fa7b">generate</span>(state):
+    <span style="color:#6272a4"># call OpenAI to produce an answer</span>
+    response = ChatOpenAI().invoke(state[<span style="color:#f1fa8c">"messages"</span>])
+    <span style="color:#ff79c6">return</span> {<span style="color:#f1fa8c">"messages"</span>: [response], <span style="color:#f1fa8c">"iteration"</span>: state[<span style="color:#f1fa8c">"iteration"</span>]+<span style="color:#f1fa8c">1</span>}
+
+<span style="color:#ff79c6">def</span> <span style="color:#50fa7b">reflect</span>(state):
+    critique_prompt = [<span style="color:#f1fa8c">"Critique the last answer. Be strict."</span>] + state[<span style="color:#f1fa8c">"messages"</span>]
+    critique = ChatOpenAI().invoke(critique_prompt)
+    <span style="color:#ff79c6">return</span> {<span style="color:#f1fa8c">"messages"</span>: [critique]}
+
+<span style="color:#ff79c6">def</span> <span style="color:#50fa7b">should_reflect</span>(state):
+    <span style="color:#ff79c6">if</span> state[<span style="color:#f1fa8c">"iteration"</span>] >= <span style="color:#f1fa8c">3</span>: <span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">"end"</span>
+    <span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">"reflect"</span>
+
+graph = StateGraph(AgentState)
+graph.add_node(<span style="color:#f1fa8c">"generate"</span>, generate)
+graph.add_node(<span style="color:#f1fa8c">"reflect"</span>, reflect)
+graph.set_entry_point(<span style="color:#f1fa8c">"generate"</span>)
+graph.add_edge(<span style="color:#f1fa8c">"generate"</span>, <span style="color:#f1fa8c">"reflect"</span>)
+graph.add_conditional_edges(<span style="color:#f1fa8c">"reflect"</span>, should_reflect, {
+    <span style="color:#f1fa8c">"reflect"</span>: <span style="color:#f1fa8c">"generate"</span>,   <span style="color:#6272a4"># loop back</span>
+    <span style="color:#f1fa8c">"end"</span>: END
+})</code></pre>
+            <p>This creates a feedback loop: generate → reflect → (maybe) generate again. State carries messages and iteration count.</p>
+            </div>
+        </section>
+
+        <section id="human">
+            <h2>🧑‍⚖️ 5. human‑in‑the‑loop (interrupt / approve)</h2>
+            <p>Use <code>interrupt</code> to pause execution and wait for human input. Perfect for sensitive actions (e.g., executing code, sending email).</p>
+            <div class="example-box">
+                <span class="badge">example 4 – ask before tool</span>
+                <pre><code><span style="color:#ff79c6">from</span> <span style="color:#f8f8f2">langgraph.checkpoint</span> <span style="color:#ff79c6">import</span> <span style="color:#f8f8f2">MemorySaver</span>
+<span style="color:#ff79c6">from</span> <span style="color:#f8f8f2">langgraph.types</span> <span style="color:#ff79c6">import</span> <span style="color:#f8f8f2">interrupt</span>
+
+<span style="color:#ff79c6">def</span> <span style="color:#50fa7b">human_approval</span>(state):
+    action = state[<span style="color:#f1fa8c">"pending_action"</span>]
+    <span style="color:#6272a4"># interrupt raises a Breakpoint – execution stops</span>
+    confirm = interrupt({<span style="color:#f1fa8c">"question"</span>: <span style="color:#f1fa8c">"Approve action?"</span>, <span style="color:#f1fa8c">"action"</span>: action})
+    <span style="color:#ff79c6">if</span> confirm[<span style="color:#f1fa8c">"approved"</span>]:
+        <span style="color:#ff79c6">return</span> {<span style="color:#f1fa8c">"action_result"</span>: execute_action(action)}
+    <span style="color:#ff79c6">else</span>:
+        <span style="color:#ff79c6">return</span> {<span style="color:#f1fa8c">"action_result"</span>: <span style="color:#f1fa8c">"rejected by user"</span>}
+
+<span style="color:#6272a4"># compile with a checkpointer to persist state</span>
+graph = builder.compile(checkpointer=MemorySaver())
+<span style="color:#6272a4"># invoke with a thread_id</span>
+config = {<span style="color:#f1fa8c">"configurable"</span>: {<span style="color:#f1fa8c">"thread_id"</span>: <span style="color:#f1fa8c">"1"</span>}}
+events = graph.stream(initial_state, config)
+<span style="color:#6272a4"># after interrupt, you can resume with: graph.invoke(None, config, interrupt_result={"approved":True})</span></code></pre>
+            <p><strong>Key:</strong> checkpointer stores state; <code>interrupt</code> pauses; you resume by passing the human decision.</p>
+            </div>
+        </section>
+
+        <section id="checkpoint">
+            <h2>💾 6. checkpoints & persistence</h2>
+            <p>Checkpointers save the graph state after each step. Combine with human‑in‑the‑loop or for fault tolerance. <code>MemorySaver</code> is in‑memory; production uses <code>PostgresSaver</code> or <code>RedisSaver</code>.</p>
+            <div class="example-box">
+                <span class="badge">example 5 – resume from break</span>
+                <pre><code><span style="color:#ff79c6">from</span> <span style="color:#f8f8f2">langgraph.checkpoint.sqlite</span> <span style="color:#ff79c6">import</span> <span style="color:#f8f8f2">SqliteSaver</span>
+memory = SqliteSaver.from_conn_string(<span style="color:#f1fa8c">"checkpoints.db"</span>)
+graph = builder.compile(checkpointer=memory)
+
+<span style="color:#6272a4"># first run stops at human_node</span>
+thread = {<span style="color:#f1fa8c">"configurable"</span>: {<span style="color:#f1fa8c">"thread_id"</span>: <span style="color:#f1fa8c">"abc"</span>}}
+graph.invoke({<span style="color:#f1fa8c">"messages"</span>:[]}, thread)
+
+<span style="color:#6272a4"># later resume – you can even get the state snapshot</span>
+snapshot = graph.get_state(thread)
+<span style="color:#6272a4"># resume with approved=True</span>
+graph.invoke(<span style="color:#f1fa8c">None</span>, thread, interrupt_result={<span style="color:#f1fa8c">"approved"</span>:<span style="color:#f1fa8c">True</span>})</code></pre>
+            </div>
+        </section>
+
+        <section id="parallel">
+            <h2>⚡ 7. parallel execution (fan‑out, fan‑in)</h2>
+            <p>Process multiple items in parallel using <code>Send</code> – a dynamic fan‑out that creates concurrent branches that later join.</p>
+            <div class="example-box">
+                <span class="badge">example 6 – parallel summarization</span>
+                <pre><code><span style="color:#ff79c6">from</span> <span style="color:#f8f8f2">langgraph.types</span> <span style="color:#ff79c6">import</span> <span style="color:#f8f8f2">Send</span>
+<span style="color:#ff79c6">def</span> <span style="color:#50fa7b">continue_to_summaries</span>(state):
+    docs = state[<span style="color:#f1fa8c">"documents"</span>]
+    <span style="color:#ff79c6">return</span> [Send(<span style="color:#f1fa8c">"summarize"</span>, {<span style="color:#f1fa8c">"doc"</span>: doc}) <span style="color:#ff79c6">for</span> doc <span style="color:#ff79c6">in</span> docs]
+
+builder.add_conditional_edges(<span style="color:#f1fa8c">"start"</span>, continue_to_summaries)
+builder.add_node(<span style="color:#f1fa8c">"summarize"</span>, <span style="color:#ff79c6">lambda</span> s: {<span style="color:#f1fa8c">"summaries"</span>: [call_openai(s[<span style="color:#f1fa8c">"doc"</span>])]})
+<span style="color:#6272a4"># after all summaries finish, they automatically merge into state (using Annotated[list, operator.add])</span></code></pre>
+            <p>Each <code>Send</code> starts a parallel branch. The parent state collects results via reducer.</p>
+            </div>
+        </section>
+
+        <section id="subgraph">
+            <h2>🗂️ 8. subgraphs – hierarchical composition</h2>
+            <p>You can nest graphs inside nodes. This is excellent for reusing patterns or encapsulating complex logic.</p>
+            <div class="example-box">
+                <span class="badge">example 7 – subgraph as tool</span>
+                <pre><code><span style="color:#ff79c6">from</span> <span style="color:#f8f8f2">langgraph.graph</span> <span style="color:#ff79c6">import</span> <span style="color:#f8f8f2">StateGraph</span>
+
+<span style="color:#6272a4"># build a standalone subgraph</span>
+subgraph_builder = StateGraph(InnerState)
+<span style="color:#6272a4"># ... add nodes, edges</span>
+subgraph = subgraph_builder.compile()
+
+<span style="color:#6272a4"># use it as a node in the parent graph</span>
+<span style="color:#ff79c6">def</span> <span style="color:#50fa7b">subgraph_node</span>(state: ParentState):
+    <span style="color:#6272a4"># map state, invoke subgraph, map back</span>
+    result = subgraph.invoke({<span style="color:#f1fa8c">"inner_key"</span>: state[<span style="color:#f1fa8c">"outer_key"</span>]})
+    <span style="color:#ff79c6">return</span> {<span style="color:#f1fa8c">"processed"</span>: result[<span style="color:#f1fa8c">"output"</span>]}
+
+parent_graph.add_node(<span style="color:#f1fa8c">"sub"</span>, subgraph_node)</code></pre>
+            </div>
+        </section>
+
+        <section id="streaming">
+            <h2>📡 9. streaming & async support</h2>
+            <p>LangGraph supports streaming tokens, events, and state updates. Great for UX.</p>
+            <div class="example-box">
+                <span class="badge">example 8 – stream tokens from LLM</span>
+                <pre><code><span style="color:#ff79c6">async</span> <span style="color:#ff79c6">for</span> event <span style="color:#ff79c6">in</span> graph.astream_events(input, version=<span style="color:#f1fa8c">"v2"</span>):
+    kind = event[<span style="color:#f1fa8c">"event"</span>]
+    <span style="color:#ff79c6">if</span> kind == <span style="color:#f1fa8c">"on_chat_model_stream"</span>:
+        token = event[<span style="color:#f1fa8c">"data"</span>][<span style="color:#f1fa8c">"chunk"</span>].content
+        <span style="color:#ff79c6">print</span>(token, end=<span style="color:#f1fa8c">""</span>)
+    <span style="color:#ff79c6">elif</span> kind == <span style="color:#f1fa8c">"on_chain_end"</span>:
+        <span style="color:#ff79c6">print</span>(<span style="color:#f1fa8c">"\n--- node finished"</span>)</code></pre>
+            </div>
+        </section>
+
+        <hr />
+
+        <h2>🧪 putting it all together – tiny advanced agent</h2>
+        <p>Below is a compact but advanced agent that uses conditional edges, a cycle (reflection), and a human interrupt before executing a tool. It assumes you have <code>OPENAI_API_KEY</code> set.</p>
+        <pre><code><span style="color:#ff79c6">from</span> <span style="color:#f8f8f2">typing</span> <span style="color:#ff79c6">import</span> <span style="color:#f8f8f2">TypedDict, List</span>
+<span style="color:#ff79c6">import</span> <span style="color:#f8f8f2">operator</span>
+<span style="color:#ff79c6">from</span> <span style="color:#f8f8f2">langgraph.graph</span> <span style="color:#ff79c6">import</span> <span style="color:#f8f8f2">StateGraph, END</span>
+<span style="color:#ff79c6">from</span> <span style="color:#f8f8f2">langgraph.checkpoint</span> <span style="color:#ff79c6">import</span> <span style="color:#f8f8f2">MemorySaver</span>
+<span style="color:#ff79c6">from</span> <span style="color:#f8f8f2">langgraph.types</span> <span style="color:#ff79c6">import</span> <span style="color:#f8f8f2">interrupt</span>
+<span style="color:#ff79c6">from</span> <span style="color:#f8f8f2">langchain_openai</span> <span style="color:#ff79c6">import</span> <span style="color:#f8f8f2">ChatOpenAI</span>
+
+<span style="color:#ff79c6">class</span> <span style="color:#50fa7b">State</span>(TypedDict):
+    messages: Annotated[List, operator.add]
+    need_approval: bool
+    approved: bool
+
+llm = ChatOpenAI(model=<span style="color:#f1fa8c">"gpt-4o-mini"</span>)
+
+<span style="color:#ff79c6">def</span> <span style="color:#50fa7b">agent</span>(state):
+    response = llm.invoke(state[<span style="color:#f1fa8c">"messages"</span>])
+    <span style="color:#6272a4"># simulate tool call request</span>
+    <span style="color:#ff79c6">if</span> <span style="color:#f1fa8c">"weather"</span> <span style="color:#ff79c6">in</span> response.content.lower():
+        state[<span style="color:#f1fa8c">"need_approval"</span>] = <span style="color:#ff79c6">True</span>
+    <span style="color:#ff79c6">return</span> {<span style="color:#f1fa8c">"messages"</span>:[response], <span style="color:#f1fa8c">"need_approval"</span>: state.get(<span style="color:#f1fa8c">"need_approval"</span>,<span style="color:#ff79c6">False</span>)}
+
+<span style="color:#ff79c6">def</span> <span style="color:#50fa7b">human_node</span>(state):
+    <span style="color:#ff79c6">if</span> state[<span style="color:#f1fa8c">"need_approval"</span>]:
+        res = interrupt({<span style="color:#f1fa8c">"msg"</span>: <span style="color:#f1fa8c">"approve tool?"</span>})
+        state[<span style="color:#f1fa8c">"approved"</span>] = res[<span style="color:#f1fa8c">"approve"</span>]
+    <span style="color:#ff79c6">return</span> {}
+
+<span style="color:#ff79c6">def</span> <span style="color:#50fa7b">router</span>(state):
+    <span style="color:#ff79c6">if</span> state.get(<span style="color:#f1fa8c">"need_approval"</span>) <span style="color:#ff79c6">and</span> <span style="color:#f1fa8c">"approved"</span> <span style="color:#ff79c6">not</span> <span style="color:#ff79c6">in</span> state:
+        <span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">"human"</span>
+    <span style="color:#ff79c6">elif</span> state.get(<span style="color:#f1fa8c">"approved"</span>):
+        <span style="color:#ff79c6">return</span> <span style="color:#f1fa8c">"tool_executor"</span>
+    <span style="color:#ff79c6">else</span>:
+        <span style="color:#ff79c6">return</span> END
+
+builder = StateGraph(State)
+builder.add_node(<span style="color:#f1fa8c">"agent"</span>, agent)
+builder.add_node(<span style="color:#f1fa8c">"human"</span>, human_node)
+builder.add_node(<span style="color:#f1fa8c">"tool_executor"</span>, <span style="color:#ff79c6">lambda</span> s: {<span style="color:#f1fa8c">"messages"</span>:[{<span style="color:#f1fa8c">"role"</span>:<span style="color:#f1fa8c">"tool"</span>,<span style="color:#f1fa8c">"content"</span>:<span style="color:#f1fa8c">"executed"</span>}]})
+builder.set_entry_point(<span style="color:#f1fa8c">"agent"</span>)
+builder.add_conditional_edges(<span style="color:#f1fa8c">"agent"</span>, router)
+builder.add_edge(<span style="color:#f1fa8c">"human"</span>, <span style="color:#f1fa8c">"agent"</span>)   <span style="color:#6272a4"># after human, go back to agent</span>
+builder.add_edge(<span style="color:#f1fa8c">"tool_executor"</span>, END)
+
+graph = builder.compile(checkpointer=MemorySaver())
+
+<span style="color:#6272a4"># run</span>
+config = {<span style="color:#f1fa8c">"configurable"</span>:{<span style="color:#f1fa8c">"thread_id"</span>:<span style="color:#f1fa8c">"demo"</span>}}
+initial = {<span style="color:#f1fa8c">"messages"</span>:[{<span style="color:#f1fa8c">"role"</span>:<span style="color:#f1fa8c">"user"</span>, <span style="color:#f1fa8c">"content"</span>:<span style="color:#f1fa8c">"do i need an umbrella? check weather"</span>}]}
+<span style="color:#ff79c6">for</span> event <span style="color:#ff79c6">in</span> graph.stream(initial, config):
+    <span style="color:#ff79c6">print</span>(event)
+<span style="color:#6272a4"># after interrupt, resume with</span>
+graph.invoke(<span style="color:#ff79c6">None</span>, config, interrupt_result={<span style="color:#f1fa8c">"approve"</span>:<span style="color:#ff79c6">True</span>})</code></pre>
+
+        <div class="note">
+            <strong>💡 pro tips</strong> – use <code>graph.get_state()</code> to inspect after interrupt; <code>update_state()</code> to manually modify; <code>astream()</code> for async; always define reducers for list fields.
+        </div>
+
+        <h2>📚 further resources</h2>
+        <ul style="margin-left:1.5rem;">
+            <li><a href="https://langchain-ai.github.io/langgraph/" target="_blank">official LangGraph docs</a></li>
+            <li><a href="https://github.com/langchain-ai/langgraph" target="_blank">GitHub – examples & cookbooks</a></li>
+            <li><a href="https://python.langchain.com/docs/langgraph" target="_blank">LangChain integration guide</a></li>
+        </ul>
+    </div>
+    <footer>
+        ⚡ advanced LangGraph tutorial – all examples use OpenAI API, designed for real experimentation.
+    </footer>
+</div>
+</body>
+</html>
