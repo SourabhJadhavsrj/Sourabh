@@ -164,6 +164,8 @@ Structured Analysis:
 - Weaknesses: Lacks X, missing Y...
 
 Suitability Score: 84%
+
+Commad to run resume.py filr
 ```
 
 ---
@@ -172,4 +174,9 @@ Suitability Score: 84%
 
 * HR professionals and recruiters
 * Resume screening automation tools
+
 * Educational and project demos for LangChain and LCEL
+
+
+# Commenad to run resume.py file
+python -m streamlit run .\resume.py
